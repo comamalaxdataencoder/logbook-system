@@ -43,7 +43,7 @@
       let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
       document.querySelectorAll('#fields input, #fields select').forEach(el => { if(el.id) data[el.id] = el.value; });
       
-      fetch("PASTE_YOUR_WEB_APP_URL_HERE", {
+      fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
