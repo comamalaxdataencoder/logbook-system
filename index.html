@@ -40,18 +40,26 @@
     }
 
     function submitForm() {
-      let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
-      document.querySelectorAll('#fields input, #fields select').forEach(el => { if(el.id) data[el.id] = el.value; });
+      let data = { 
+        formType: document.getElementById('formSelect').value, 
+        action: document.querySelector('input[name="action"]:checked').value 
+      };
       
-      fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec, {
+      document.querySelectorAll('#fields input, #fields select').forEach(el => { 
+        if(el.id) data[el.id] = el.value; 
+      });
+
+      // PALITAN MO ITO NG IYONG BAGONG WEB APP URL
+      fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec", {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       })
-      .then(() => alert("Success! Data sent."))
+      .then(() => alert("Data Sent! Check Sheet."))
       .catch(err => alert("Error: " + err));
     }
+    
     showForm();
   </script>
 </body>
