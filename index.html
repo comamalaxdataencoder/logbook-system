@@ -34,16 +34,22 @@
   <script>
     function showForm() {
       let type = document.getElementById('formSelect').value;
-      let html = '<input id="name" placeholder="Name" required><input id="contact" placeholder="Contact # (e.g. 0917...)" required>';
+      let html = '<input id="name" placeholder="Name" required>' +
+                 '<input id="contact" type="number" placeholder="Contact #" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" required>';
       
       if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
         html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
       } else if(type === 'PickupLogs') {
         html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LBC Express</option><option>LEX</option></select>';
       } else if(type === 'RTSLogs') {
-        html += '<div id="reader"></div><input id="tracking" placeholder="Tracking Number"><button type="button" onclick="startScanner()">SCAN BARCODE</button><input id="qty" placeholder="Qty"><input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
+        html += '<div id="reader"></div><input id="tracking" placeholder="Tracking Number"><button type="button" onclick="startScanner()">SCAN BARCODE</button>' +
+                '<input id="qty" type="number" placeholder="Qty" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')">' +
+                '<input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
       } else if(type === 'DeliveryParcelLogs') {
-        html += '<input id="dept" placeholder="Department"><input id="forWho" placeholder="Who is this for?"><input id="qty" placeholder="Qty"><select id="platform"><option>Lazada</option><option>Tiktok</option><option>Shopee</option><option>Others</option></select><input id="recBy" placeholder="Received By"><input id="checkBy" placeholder="Checked By"><input id="remarks" placeholder="Remarks">';
+        html += '<input id="dept" placeholder="Department"><input id="forWho" placeholder="Who is this for?">' +
+                '<input id="qty" type="number" placeholder="Qty" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')">' +
+                '<select id="platform"><option>Lazada</option><option>Tiktok</option><option>Shopee</option><option>Others</option></select>' +
+                '<input id="recBy" placeholder="Received By"><input id="checkBy" placeholder="Checked By"><input id="remarks" placeholder="Remarks">';
       }
       document.getElementById('fields').innerHTML = html;
     }
