@@ -3,10 +3,11 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    input, select, button { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-    button { background-color: #007bff; color: white; font-weight: bold; border: none; cursor: pointer; }
+    body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    select, input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+    .radio-group { display: flex; gap: 20px; margin: 10px 0; }
   </style>
 </head>
 <body>
@@ -15,48 +16,59 @@
     <select id="formSelect" onchange="showForm()">
       <option value="EmployeeLogs">Employee</option>
       <option value="PickupLogs">Pickup</option>
+      <option value="RTSLogs">RTS</option>
+      <option value="DeliveryParcelLogs">Delivery</option>
     </select>
+    
     <div id="fields"></div>
+    
+    <div class="radio-group">
+      <label><input type="radio" name="action" value="IN" checked> IN</label>
+      <label><input type="radio" name="action" value="OUT"> OUT</label>
+    </div>
+    
     <button onclick="submitForm()">SUBMIT</button>
   </div>
 
   <script>
     function showForm() {
       let type = document.getElementById('formSelect').value;
-      let html = '<input id="name" placeholder="Name" required><input id="contact" placeholder="Contact">';
+      let html = '<input id="name" placeholder="Name" required><input id="contact" placeholder="Contact #">';
+      
+      if(type === 'EmployeeLogs') {
+        html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option></select><input id="remarks" placeholder="Remarks">';
+      } else if(type === 'PickupLogs') {
+        html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LBC Express</option><option>LEX</option></select>';
+      } else if(type === 'RTSLogs') {
+        html += '<input id="tracking" placeholder="Tracking Number"><input id="qty" placeholder="Qty"><input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
+      } else if(type === 'DeliveryParcelLogs') {
+        html += '<input id="dept" placeholder="Department"><input id="forWho" placeholder="Who is this for?"><input id="qty" placeholder="Qty"><select id="platform"><option>Lazada</option><option>Tiktok</option><option>Shopee</option><option>Others</option></select><input id="recBy" placeholder="Received By"><input id="checkBy" placeholder="Checked By"><input id="remarks" placeholder="Remarks">';
+      }
+      
       document.getElementById('fields').innerHTML = html;
     }
 
     function submitForm() {
       let data = { 
         formType: document.getElementById('formSelect').value,
-        name: document.getElementById('name').value,
-        contact: document.getElementById('contact').value
+        action: document.querySelector('input[name="action"]:checked').value
       };
       
-      // I-disable ang button para hindi ma-double click
-      event.target.disabled = true;
-      event.target.innerText = "Sending...";
+      // Kunin lahat ng input values
+      document.querySelectorAll('#fields input, #fields select').forEach(el => {
+        data[el.id] = el.value;
+      });
 
-      // Gagamit tayo ng normal na mode para makita ang error
       fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec", {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(data)
       })
-      .then(response => response.text())
-      .then(result => {
-        alert("Resulta: " + result);
-        event.target.disabled = false;
-        event.target.innerText = "SUBMIT";
-      })
-      .catch(err => {
-        alert("Error: " + err);
-        event.target.disabled = false;
-        event.target.innerText = "SUBMIT";
-      });
+      .then(r => r.text()).then(t => alert("Resulta: " + t))
+      .catch(e => alert("Error: " + e));
     }
     
+    // Initialize form
     showForm();
   </script>
 </body>
