@@ -7,7 +7,7 @@
     .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     select, input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
     button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
-    .radio-group { display: flex; gap: 20px; margin: 10px 0; }
+    .radio-group { display: flex; gap: 20px; margin: 10px 0; justify-content: center; }
   </style>
 </head>
 <body>
@@ -15,6 +15,7 @@
     <h2>Logbook System</h2>
     <select id="formSelect" onchange="showForm()">
       <option value="EmployeeLogs">Employee</option>
+      <option value="VisitorLogs">Visitor</option>
       <option value="PickupLogs">Pickup</option>
       <option value="RTSLogs">RTS</option>
       <option value="DeliveryParcelLogs">Delivery</option>
@@ -27,15 +28,15 @@
       <label><input type="radio" name="action" value="OUT"> OUT</label>
     </div>
     
-    <button onclick="submitForm()">SUBMIT</button>
+    <button id="submitBtn" onclick="submitForm()">SUBMIT</button>
   </div>
 
   <script>
     function showForm() {
       let type = document.getElementById('formSelect').value;
-      let html = '<input id="name" placeholder="Name" required><input id="contact" placeholder="Contact #">';
+      let html = '<input id="name" placeholder="Name" required><input id="contact" placeholder="Contact # (e.g. 0917...)" required>';
       
-      if(type === 'EmployeeLogs') {
+      if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
         html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option></select><input id="remarks" placeholder="Remarks">';
       } else if(type === 'PickupLogs') {
         html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LBC Express</option><option>LEX</option></select>';
@@ -44,31 +45,35 @@
       } else if(type === 'DeliveryParcelLogs') {
         html += '<input id="dept" placeholder="Department"><input id="forWho" placeholder="Who is this for?"><input id="qty" placeholder="Qty"><select id="platform"><option>Lazada</option><option>Tiktok</option><option>Shopee</option><option>Others</option></select><input id="recBy" placeholder="Received By"><input id="checkBy" placeholder="Checked By"><input id="remarks" placeholder="Remarks">';
       }
-      
       document.getElementById('fields').innerHTML = html;
     }
 
     function submitForm() {
+      let btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerText = "Sending...";
+
       let data = { 
         formType: document.getElementById('formSelect').value,
         action: document.querySelector('input[name="action"]:checked').value
       };
-      
-      // Kunin lahat ng input values
-      document.querySelectorAll('#fields input, #fields select').forEach(el => {
-        data[el.id] = el.value;
-      });
+      document.querySelectorAll('#fields input, #fields select').forEach(el => data[el.id] = el.value);
 
       fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec", {
         method: "POST",
-        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(data)
       })
-      .then(r => r.text()).then(t => alert("Resulta: " + t))
-      .catch(e => alert("Error: " + e));
+      .then(r => r.text()).then(t => {
+        alert("Resulta: " + t);
+        btn.disabled = false;
+        btn.innerText = "SUBMIT";
+      })
+      .catch(e => {
+        alert("Error: " + e);
+        btn.disabled = false;
+        btn.innerText = "SUBMIT";
+      });
     }
-    
-    // Initialize form
     showForm();
   </script>
 </body>
