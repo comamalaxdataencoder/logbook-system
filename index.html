@@ -65,16 +65,29 @@
     }
 
     function submitForm() {
+      let fields = document.querySelectorAll('#fields input, #fields select');
+      let isValid = true;
+      fields.forEach(el => {
+        if (el.value.trim() === "") { isValid = false; el.style.border = "2px solid red"; } 
+        else { el.style.border = "1px solid #ccc"; }
+      });
+
+      if (!isValid) { alert("Oops! Pakipunuan lahat ng field bago mag-submit."); return; }
+
       let btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "Sending...";
       let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
-      document.querySelectorAll('#fields input, #fields select').forEach(el => data[el.id] = el.value);
+      fields.forEach(el => data[el.id] = el.value);
 
       fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec", {
         method: "POST",
         body: JSON.stringify(data)
       })
-      .then(r => r.text()).then(t => { alert("Resulta: " + t); btn.disabled = false; btn.innerText = "SUBMIT"; })
+      .then(r => r.text()).then(t => { 
+        alert("Resulta: " + t); 
+        btn.disabled = false; btn.innerText = "SUBMIT"; 
+        fields.forEach(el => el.value = ""); 
+      })
       .catch(e => { alert("Error: " + e); btn.disabled = false; btn.innerText = "SUBMIT"; });
     }
     showForm();
