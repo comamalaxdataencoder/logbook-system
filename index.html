@@ -20,14 +20,11 @@
       <option value="RTSLogs">RTS</option>
       <option value="DeliveryParcelLogs">Delivery</option>
     </select>
-    
     <div id="fields"></div>
-    
     <div class="radio-group">
       <label><input type="radio" name="action" value="IN" checked> IN</label>
       <label><input type="radio" name="action" value="OUT"> OUT</label>
     </div>
-    
     <button id="submitBtn" onclick="submitForm()">SUBMIT</button>
   </div>
 
@@ -35,9 +32,8 @@
     function showForm() {
       let type = document.getElementById('formSelect').value;
       let html = '<input id="name" placeholder="Name" required><input id="contact" placeholder="Contact # (e.g. 0917...)" required>';
-      
       if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
-        html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option></select><input id="remarks" placeholder="Remarks">';
+        html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
       } else if(type === 'PickupLogs') {
         html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LBC Express</option><option>LEX</option></select>';
       } else if(type === 'RTSLogs') {
@@ -50,29 +46,16 @@
 
     function submitForm() {
       let btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerText = "Sending...";
-
-      let data = { 
-        formType: document.getElementById('formSelect').value,
-        action: document.querySelector('input[name="action"]:checked').value
-      };
+      btn.disabled = true; btn.innerText = "Sending...";
+      let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
       document.querySelectorAll('#fields input, #fields select').forEach(el => data[el.id] = el.value);
 
       fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec", {
         method: "POST",
         body: JSON.stringify(data)
       })
-      .then(r => r.text()).then(t => {
-        alert("Resulta: " + t);
-        btn.disabled = false;
-        btn.innerText = "SUBMIT";
-      })
-      .catch(e => {
-        alert("Error: " + e);
-        btn.disabled = false;
-        btn.innerText = "SUBMIT";
-      });
+      .then(r => r.text()).then(t => { alert("Resulta: " + t); btn.disabled = false; btn.innerText = "SUBMIT"; })
+      .catch(e => { alert("Error: " + e); btn.disabled = false; btn.innerText = "SUBMIT"; });
     }
     showForm();
   </script>
