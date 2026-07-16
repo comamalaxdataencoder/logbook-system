@@ -61,7 +61,7 @@
           document.getElementById('tracking').value = decodedText;
           html5QrCode.stop().then(() => { document.getElementById('reader').innerHTML = ""; });
         }
-      ).catch(err => { alert("Error sa Camera: " + err); });
+      ).catch(err => { alert("An error occurred while accessing the camera. Please try again: " + err); });
     }
 
     function submitForm() {
@@ -72,7 +72,7 @@
         else { el.style.border = "1px solid #ccc"; }
       });
 
-      if (!isValid) { alert("Oops! Pakipunuan lahat ng field bago mag-submit."); return; }
+      if (!isValid) { alert("Oops! Please complete all required fields before submitting."); return; }
 
       let btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "Sending...";
