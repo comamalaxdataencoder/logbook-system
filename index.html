@@ -1,53 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Ito ang nagpapa-fit sa screen -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body { 
-      font-family: sans-serif; 
-      padding: 10px; /* Binawasan natin para hindi sayang sa space */
-      background: #f4f7f6; 
-      margin: 0;
-      display: flex;
-      justify-content: center;
-    }
-    .container { 
-      width: 100%; 
-      max-width: 450px; /* Sakto sa phone width */
-      background: white; 
-      padding: 15px; 
-      border-radius: 12px; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-    }
+    body { font-family: sans-serif; padding: 10px; background: #f4f7f6; margin: 0; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 450px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     h2 { font-size: 1.2rem; text-align: center; margin-top: 0; }
-    
-    /* Input fields na sakto ang laki */
-    select, input, button { 
-      width: 100%; 
-      padding: 14px; /* Mas malaki para madaling pindutin */
-      margin: 6px 0; 
-      border: 1px solid #ccc; 
-      border-radius: 8px; 
-      font-size: 16px; /* Iwas-zoom ng iPhone/Android */
-      box-sizing: border-box; 
-    }
-    
-    button { 
-      background: #007bff; 
-      color: white; 
-      border: none; 
-      font-weight: bold; 
-      cursor: pointer; 
-      margin-top: 15px;
-    }
-    
-    .radio-group { 
-      display: flex; 
-      justify-content: space-around; 
-      padding: 10px 0; 
-      font-size: 1.1rem;
-    }
+    select, input, button { width: 100%; padding: 14px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+    button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    .radio-group { display: flex; justify-content: space-around; padding: 10px 0; font-size: 1.1rem; }
+    #reader { width: 100%; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -72,16 +35,27 @@
     function showForm() {
       let type = document.getElementById('formSelect').value;
       let html = '<input id="name" placeholder="Name" required><input id="contact" placeholder="Contact # (e.g. 0917...)" required>';
+      
       if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
         html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
       } else if(type === 'PickupLogs') {
         html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LBC Express</option><option>LEX</option></select>';
       } else if(type === 'RTSLogs') {
-        html += '<input id="tracking" placeholder="Tracking Number"><input id="qty" placeholder="Qty"><input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
+        html += '<div id="reader"></div><input id="tracking" placeholder="Tracking Number"><button type="button" onclick="startScanner()">SCAN BARCODE</button><input id="qty" placeholder="Qty"><input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
       } else if(type === 'DeliveryParcelLogs') {
         html += '<input id="dept" placeholder="Department"><input id="forWho" placeholder="Who is this for?"><input id="qty" placeholder="Qty"><select id="platform"><option>Lazada</option><option>Tiktok</option><option>Shopee</option><option>Others</option></select><input id="recBy" placeholder="Received By"><input id="checkBy" placeholder="Checked By"><input id="remarks" placeholder="Remarks">';
       }
       document.getElementById('fields').innerHTML = html;
+    }
+
+    function startScanner() {
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+        (decodedText) => {
+          document.getElementById('tracking').value = decodedText;
+          html5QrCode.stop().then(() => { document.getElementById('reader').innerHTML = ""; });
+        }
+      ).catch(err => { alert("Error sa Camera: " + err); });
     }
 
     function submitForm() {
