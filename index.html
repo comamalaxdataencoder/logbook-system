@@ -79,7 +79,7 @@
       let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
       fields.forEach(el => data[el.id] = el.value);
 
-      fetch("https://script.google.com/macros/s/AKfycbwOPyl0QhLzQR30ARiZZj0HDhICu7iZj5GmlmNIIPYUvjvkG0n0vONcS-E7CqS1852Gjw/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbxCOrwQHLQEJs49sesa8aV1UKxf6HUhravwgPhg6W0gqaiMF3INZyDkoC1V0XFRxyONRA/exec", {
         method: "POST",
         body: JSON.stringify(data)
       })
