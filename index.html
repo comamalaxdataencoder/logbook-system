@@ -7,7 +7,8 @@
     body { font-family: sans-serif; padding: 10px; background: #f4f7f6; margin: 0; display: flex; justify-content: center; }
     .container { width: 100%; max-width: 450px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     h2 { font-size: 1.2rem; text-align: center; margin-top: 0; }
-    select, input, button { width: 100%; padding: 14px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+    select, input, textarea, button { width: 100%; padding: 14px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+    textarea { resize: vertical; height: 90px; font-family: sans-serif; }
     button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
     .radio-group { display: flex; justify-content: space-around; padding: 10px 0; font-size: 1.1rem; }
     #reader { width: 100%; margin-bottom: 10px; }
@@ -42,7 +43,9 @@
 
       if(type === 'Device') {
         radioGroup.style.display = "flex";
-        html += '<input id="serial" placeholder="Serial Number" required>' +
+        html += '<div id="reader"></div>' +
+                '<button type="button" onclick="startScanner()">SCAN SERIAL BARCODE</button>' +
+                '<textarea id="serial" placeholder="I-scan o i-type ang mga Serial Numbers dito (bawat isa ay sa bagong linya)" required></textarea>' +
                 '<input id="dept" placeholder="Department">' +
                 '<input id="outVal" placeholder="Out Status/Remarks">' +
                 '<input id="inVal" placeholder="In Status/Remarks">';
@@ -54,7 +57,7 @@
         html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LEX</option><option>Gogo Xpress</option><option>INSTANT</option><option>J&T Cargo</option></select>';
       } else if(type === 'RTSLogs') {
         radioGroup.style.display = "flex";
-        html += '<div id="reader"></div><input id="tracking" placeholder="Tracking Number"><button type="button" onclick="startScanner()">SCAN BARCODE</button>' +
+        html += '<div id="reader"></div><input id="tracking" placeholder="Tracking Number"><button type="button" onclick="startScannerRTS()">SCAN BARCODE</button>' +
                 '<input id="qty" type="text" inputmode="numeric" placeholder="Qty" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')">' +
                 '<input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
       } else if(type === 'DeliveryParcelLogs') {
@@ -71,28 +74,42 @@
       const html5QrCode = new Html5Qrcode("reader");
       html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
         (decodedText) => {
+          let serialField = document.getElementById('serial');
+          if (serialField.value.trim() === "") {
+            serialField.value = decodedText;
+          } else {
+            serialField.value += "\n" + decodedText;
+          }
+          alert("Na-scan ang: " + decodedText);
+        }
+      ).catch(err => { alert("Error sa camera: " + err); });
+    }
+
+    function startScannerRTS() {
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+        (decodedText) => {
           document.getElementById('tracking').value = decodedText;
           html5QrCode.stop().then(() => { document.getElementById('reader').innerHTML = ""; });
         }
-      ).catch(err => { alert("An error occurred while accessing the camera. Please try again: " + err); });
+      ).catch(err => { alert("Error sa camera: " + err); });
     }
 
     function submitForm() {
-      let fields = document.querySelectorAll('#fields input, #fields select');
+      let fields = document.querySelectorAll('#fields input, #fields select, #fields textarea');
       let isValid = true;
       fields.forEach(el => {
-        if (el.value.trim() === "") { isValid = false; el.style.border = "2px solid red"; } 
+        if (el.value.trim() === "" && el.id !== "reader") { isValid = false; el.style.border = "2px solid red"; } 
         else { el.style.border = "1px solid #ccc"; }
       });
 
-      if (!isValid) { alert("Oops! Please complete all required fields before submitting."); return; }
+      if (!isValid) { alert("Pakikumpleto muna ang mga kinakailangang field bago mag-submit."); return; }
 
       let btn = document.getElementById('submitBtn');
-      btn.disabled = true; btn.innerText = "Sending...";
+      btn.disabled = true; btn.innerText = "Nagse-send...";
       let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
-      fields.forEach(el => data[el.id] = el.value);
+      fields.forEach(el => { if(el.id) data[el.id] = el.value; });
 
-      // Siguraduhing tama ang deployment URL mo rito
       fetch("https://script.google.com/macros/s/AKfycbxCOrwQHLQEJs49sesa8aV1UKxf6HUhravwgPhg6W0gqaiMF3INZyDkoC1V0XFRxyONRA/exec", {
         method: "POST",
         body: JSON.stringify(data)
@@ -100,7 +117,7 @@
       .then(r => r.text()).then(t => { 
         alert("Resulta: " + t); 
         btn.disabled = false; btn.innerText = "SUBMIT"; 
-        fields.forEach(el => el.value = ""); 
+        fields.forEach(el => { if(el.id !== "reader") el.value = ""; }); 
       })
       .catch(e => { alert("Error: " + e); btn.disabled = false; btn.innerText = "SUBMIT"; });
     }
