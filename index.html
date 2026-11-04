@@ -25,7 +25,7 @@
       <option value="Device">Device</option>
     </select>
     <div id="fields"></div>
-    <div class="radio-group">
+    <div class="radio-group" id="radioGroup">
       <label><input type="radio" name="action" value="IN" checked> IN</label>
       <label><input type="radio" name="action" value="OUT"> OUT</label>
     </div>
@@ -38,18 +38,27 @@
       let html = '<input id="name" placeholder="Name" required>' +
                  '<input id="contact" type="text" inputmode="numeric" placeholder="Contact #" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" required>';
       
-      if(type === 'EmployeeLogs' || type === 'VisitorLogs' || type === 'Device') {
-        html += '<input id="dept" placeholder="Department">';
-        if(type !== 'Device') {
-          html += '<select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
-        }
+      let radioGroup = document.getElementById('radioGroup');
+
+      if(type === 'Device') {
+        radioGroup.style.display = "flex";
+        html += '<input id="serial" placeholder="Serial Number" required>' +
+                '<input id="dept" placeholder="Department">' +
+                '<input id="outVal" placeholder="Out Status/Remarks">' +
+                '<input id="inVal" placeholder="In Status/Remarks">';
+      } else if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
+        radioGroup.style.display = "flex";
+        html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
       } else if(type === 'PickupLogs') {
+        radioGroup.style.display = "flex";
         html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LEX</option><option>Gogo Xpress</option><option>INSTANT</option><option>J&T Cargo</option></select>';
       } else if(type === 'RTSLogs') {
+        radioGroup.style.display = "flex";
         html += '<div id="reader"></div><input id="tracking" placeholder="Tracking Number"><button type="button" onclick="startScanner()">SCAN BARCODE</button>' +
                 '<input id="qty" type="text" inputmode="numeric" placeholder="Qty" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')">' +
                 '<input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
       } else if(type === 'DeliveryParcelLogs') {
+        radioGroup.style.display = "flex";
         html += '<input id="dept" placeholder="Department"><input id="forWho" placeholder="Who is this for?">' +
                 '<input id="qty" type="text" inputmode="numeric" placeholder="Qty" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')">' +
                 '<select id="platform"><option>Lazada</option><option>Tiktok</option><option>Shopee</option><option>Others</option></select>' +
@@ -83,7 +92,7 @@
       let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
       fields.forEach(el => data[el.id] = el.value);
 
-      // PALITAN MO ANG URL NA ITO NG PINAKABAGONG WEB APP URL MULA SA APPS SCRIPT MO
+      // Siguraduhing tama ang deployment URL mo rito
       fetch("https://script.google.com/macros/s/AKfycbxCOrwQHLQEJs49sesa8aV1UKxf6HUhravwgPhg6W0gqaiMF3INZyDkoC1V0XFRxyONRA/exec", {
         method: "POST",
         body: JSON.stringify(data)
