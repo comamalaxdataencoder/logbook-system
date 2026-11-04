@@ -22,6 +22,7 @@
       <option value="PickupLogs">Pickup</option>
       <option value="RTSLogs">RTS</option>
       <option value="DeliveryParcelLogs">Delivery</option>
+      <option value="Device">Device</option>
     </select>
     <div id="fields"></div>
     <div class="radio-group">
@@ -37,8 +38,11 @@
       let html = '<input id="name" placeholder="Name" required>' +
                  '<input id="contact" type="text" inputmode="numeric" placeholder="Contact #" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" required>';
       
-      if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
-        html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
+      if(type === 'EmployeeLogs' || type === 'VisitorLogs' || type === 'Device') {
+        html += '<input id="dept" placeholder="Department">';
+        if(type !== 'Device') {
+          html += '<select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
+        }
       } else if(type === 'PickupLogs') {
         html += '<select id="platform"><option>SPX</option><option>Flash Express</option><option>J&T Express</option><option>Ninja Van</option><option>LEX</option><option>Gogo Xpress</option><option>INSTANT</option><option>J&T Cargo</option></select>';
       } else if(type === 'RTSLogs') {
@@ -79,6 +83,7 @@
       let data = { formType: document.getElementById('formSelect').value, action: document.querySelector('input[name="action"]:checked').value };
       fields.forEach(el => data[el.id] = el.value);
 
+      // PALITAN MO ANG URL NA ITO NG PINAKABAGONG WEB APP URL MULA SA APPS SCRIPT MO
       fetch("https://script.google.com/macros/s/AKfycbxCOrwQHLQEJs49sesa8aV1UKxf6HUhravwgPhg6W0gqaiMF3INZyDkoC1V0XFRxyONRA/exec", {
         method: "POST",
         body: JSON.stringify(data)
