@@ -10,7 +10,7 @@
     select, input, textarea, button { width: 100%; padding: 14px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
     textarea { resize: vertical; height: 90px; font-family: sans-serif; }
     button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-    .radio-group { display: flex; justify-content: space-around; padding: 10px 0; font-size: 1.1rem; }
+    .radio-group { display: flex; justify-content: space-around; padding: 10px 0; font-size: 1.1rem; font-weight: bold; }
     #reader { width: 100%; margin-bottom: 10px; }
   </style>
 </head>
@@ -18,23 +18,32 @@
   <div class="container">
     <h2>Logbook System</h2>
     <select id="formSelect" onchange="showForm()">
+      <option value="Device">Device</option>
       <option value="EmployeeLogs">Employee</option>
       <option value="VisitorLogs">Visitor</option>
       <option value="PickupLogs">Pickup</option>
       <option value="RTSLogs">RTS</option>
       <option value="DeliveryParcelLogs">Delivery</option>
-      <option value="Device">Device</option>
     </select>
+    
+    <div class="radio-group" id="deviceActionGroup">
+      <label><input type="radio" name="actionType" value="OUT" checked> OUT ORDER</label>
+      <label><input type="radio" name="actionType" value="RETURN"> RETURN ITEM</label>
+    </div>
+
     <div id="fields"></div>
-    <div class="radio-group" id="radioGroup">
+    
+    <div class="radio-group" id="generalActionGroup" style="display:none;">
       <label><input type="radio" name="action" value="IN" checked> IN</label>
       <label><input type="radio" name="action" value="OUT"> OUT</label>
     </div>
+
     <button id="submitBtn" onclick="submitForm()">SUBMIT</button>
   </div>
 
   <script>
     let html5QrCode = null;
+    const SCRIPT_URL = "ILAGAY_MO_DITO_ANG_APPS_SCRIPT_WEB_APP_URL"; // Palitan ng Google Apps Script URL mo
 
     function playBeep() {
       try {
@@ -48,39 +57,36 @@
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.15);
-      } catch (e) {
-        console.log("Audio error: ", e);
-      }
+      } catch (e) {}
     }
 
     function showForm() {
       if (html5QrCode) {
-        html5QrCode.stop().catch(() => {}).finally(() => {
-          html5QrCode = null;
-          let r = document.getElementById('reader');
-          if(r) r.innerHTML = "";
-        });
+        html5QrCode.stop().catch(() => {}).finally(() => { html5QrCode = null; document.getElementById('reader').innerHTML = ""; });
       }
 
       let type = document.getElementById('formSelect').value;
+      let deviceActionGroup = document.getElementById('deviceActionGroup');
+      let generalActionGroup = document.getElementById('generalActionGroup');
+
       let html = '<input id="name" placeholder="Name" required>' +
                  '<input id="contact" type="text" inputmode="numeric" placeholder="Contact #" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" required>';
       
-      let radioGroup = document.getElementById('radioGroup');
-
       if(type === 'Device') {
-        radioGroup.style.display = "none";
+        deviceActionGroup.style.display = "flex";
+        generalActionGroup.style.display = "none";
         html += '<div id="reader"></div>' +
                 '<button type="button" onclick="startScanner()">SCAN SERIAL BARCODE</button>' +
                 '<button type="button" onclick="stopScanner()" style="background: #dc3545; margin-top: 5px;">CLOSE CAMERA</button>' +
-                '<textarea id="serial" placeholder="I-scan o i-type ang mga Serial Numbers dito (bawat isa ay sa bagong linya)" required></textarea>' +
+                '<textarea id="serial" placeholder="I-scan o i-type ang mga Serial Numbers dito" required></textarea>' +
                 '<input id="dept" placeholder="Department">' +
                 '<label style="font-size: 14px; font-weight: bold; margin-top: 5px; display: block;">Out Location:</label>' +
                 '<select id="outVal"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select>' +
                 '<label style="font-size: 14px; font-weight: bold; margin-top: 5px; display: block;">In Location:</label>' +
-                '<select id="inVal"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select>';
+                '<select id="inVal"><option value="OFFICE 1101">OFFICE 1101</option><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option></select>';
       } else {
-        radioGroup.style.display = "flex";
+        deviceActionGroup.style.display = "none";
+        generalActionGroup.style.display = "flex";
         if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
           html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
         } else if(type === 'PickupLogs') {
@@ -107,17 +113,11 @@
         (decodedText) => {
           let serialField = document.getElementById('serial');
           let currentText = serialField.value.trim();
-          // Hatiin ang mga nakasulat per line para masuri kung naroroon na
           let lines = currentText === "" ? [] : currentText.split("\n");
           
-          // Suriin kung ang bagong nascan ay wala pa sa listahan
           if (!lines.includes(decodedText)) {
-            playBeep(); // Tutunog lang kapag bago at idinagdag
-            if (currentText === "") {
-              serialField.value = decodedText;
-            } else {
-              serialField.value += "\n" + decodedText;
-            }
+            playBeep();
+            serialField.value = currentText === "" ? decodedText : currentText + "\n" + decodedText;
           }
         }
       ).catch(err => { alert("Error sa camera: " + err); });
@@ -137,24 +137,12 @@
 
     function stopScanner() {
       if (html5QrCode) {
-        html5QrCode.stop().then(() => {
-          html5QrCode = null;
-          let r = document.getElementById('reader');
-          if(r) r.innerHTML = "";
-        }).catch(() => {
-          html5QrCode = null;
-          let r = document.getElementById('reader');
-          if(r) r.innerHTML = "";
-        });
-      } else {
-        let r = document.getElementById('reader');
-        if(r) r.innerHTML = "";
+        html5QrCode.stop().then(() => { html5QrCode = null; document.getElementById('reader').innerHTML = ""; }).catch(() => { html5QrCode = null; document.getElementById('reader').innerHTML = ""; });
       }
     }
 
     function submitForm() {
       stopScanner();
-
       let fields = document.querySelectorAll('#fields input, #fields select, #fields textarea');
       let isValid = true;
       fields.forEach(el => {
@@ -170,15 +158,13 @@
       let formTypeVal = document.getElementById('formSelect').value;
       let data = { 
         formType: formTypeVal, 
-        action: formTypeVal === 'Device' ? 'IN' : document.querySelector('input[name="action"]:checked').value 
+        actionType: formTypeVal === 'Device' ? document.querySelector('input[name="actionType"]:checked').value : "",
+        action: formTypeVal !== 'Device' ? document.querySelector('input[name="action"]:checked').value : ""
       };
       
       fields.forEach(el => { if(el.id) data[el.id] = el.value; });
 
-      fetch("https://script.google.com/macros/s/AKfycbxCOrwQHLQEJs49sesa8aV1UKxf6HUhravwgPhg6W0gqaiMF3INZyDkoC1V0XFRxyONRA/exec", {
-        method: "POST",
-        body: JSON.stringify(data)
-      })
+      fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(data) })
       .then(r => r.text()).then(t => { 
         alert("Resulta: " + t); 
         btn.disabled = false; btn.innerText = "SUBMIT"; 
