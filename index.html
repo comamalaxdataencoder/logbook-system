@@ -36,19 +36,18 @@
   <script>
     let html5QrCode = null;
 
-    // Pantugtog ng Beep Sound tuwing may mascan
     function playBeep() {
       try {
         let ctx = new (window.AudioContext || window.webkitAudioContext)();
         let osc = ctx.createOscillator();
         let gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.value = 800; // Frequency ng beep
+        osc.frequency.value = 800;
         gain.gain.setValueAtTime(0.1, ctx.currentTime);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.15); // Maikling tunog (150ms)
+        osc.stop(ctx.currentTime + 0.15);
       } catch (e) {
         console.log("Audio error: ", e);
       }
@@ -70,7 +69,7 @@
       let radioGroup = document.getElementById('radioGroup');
 
       if(type === 'Device') {
-        radioGroup.style.display = "none"; // Itinatago ang IN/OUT radio buttons para sa Device
+        radioGroup.style.display = "none";
         html += '<div id="reader"></div>' +
                 '<button type="button" onclick="startScanner()">SCAN SERIAL BARCODE</button>' +
                 '<button type="button" onclick="stopScanner()" style="background: #dc3545; margin-top: 5px;">CLOSE CAMERA</button>' +
@@ -104,12 +103,13 @@
     function startScanner() {
       if (html5QrCode) { return; }
       html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+      // Binawasan ang qrbox size ginawang 180 para lumiit ang scan box
+      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 140 } },
         (decodedText) => {
           let serialField = document.getElementById('serial');
           let lines = serialField.value.split("\n");
           if (lines[lines.length - 1] !== decodedText) {
-            playBeep(); // Tutunog ang beep tuwing may matagumpay na scan
+            playBeep();
             if (serialField.value.trim() === "") {
               serialField.value = decodedText;
             } else {
@@ -123,7 +123,7 @@
     function startScannerRTS() {
       if (html5QrCode) { return; }
       html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 140 } },
         (decodedText) => {
           playBeep();
           document.getElementById('tracking').value = decodedText;
