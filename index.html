@@ -34,7 +34,18 @@
   </div>
 
   <script>
+    let html5QrCode = null;
+
     function showForm() {
+      // Kung lumipat ng form, siguruhing patayin ang scanner kung aktibo
+      if (html5QrCode) {
+        html5QrCode.stop().catch(() => {}).finally(() => {
+          html5QrCode = null;
+          let r = document.getElementById('reader');
+          if(r) r.innerHTML = "";
+        });
+      }
+
       let type = document.getElementById('formSelect').value;
       let html = '<input id="name" placeholder="Name" required>' +
                  '<input id="contact" type="text" inputmode="numeric" placeholder="Contact #" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" required>';
@@ -45,10 +56,13 @@
         radioGroup.style.display = "flex";
         html += '<div id="reader"></div>' +
                 '<button type="button" onclick="startScanner()">SCAN SERIAL BARCODE</button>' +
+                '<button type="button" onclick="stopScanner()" style="background: #dc3545; margin-top: 5px;">CLOSE CAMERA</button>' +
                 '<textarea id="serial" placeholder="I-scan o i-type ang mga Serial Numbers dito (bawat isa ay sa bagong linya)" required></textarea>' +
                 '<input id="dept" placeholder="Department">' +
-                '<input id="outVal" placeholder="Out Status/Remarks">' +
-                '<input id="inVal" placeholder="In Status/Remarks">';
+                '<label style="font-size: 14px; font-weight: bold; margin-top: 5px; display: block;">Out Location:</label>' +
+                '<select id="outVal"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select>' +
+                '<label style="font-size: 14px; font-weight: bold; margin-top: 5px; display: block;">In Location:</label>' +
+                '<select id="inVal"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select>';
       } else if(type === 'EmployeeLogs' || type === 'VisitorLogs') {
         radioGroup.style.display = "flex";
         html += '<input id="dept" placeholder="Department"><select id="whs"><option value="WHS 1103">WHS 1103</option><option value="WHS 1104">WHS 1104</option><option value="OFFICE 1101">OFFICE 1101</option></select><input id="remarks" placeholder="Remarks">';
@@ -58,6 +72,7 @@
       } else if(type === 'RTSLogs') {
         radioGroup.style.display = "flex";
         html += '<div id="reader"></div><input id="tracking" placeholder="Tracking Number"><button type="button" onclick="startScannerRTS()">SCAN BARCODE</button>' +
+                '<button type="button" onclick="stopScanner()" style="background: #dc3545; margin-top: 5px;">CLOSE CAMERA</button>' +
                 '<input id="qty" type="text" inputmode="numeric" placeholder="Qty" oninput="this.value = this.value.replace(/[^0-9]/g, \'\')">' +
                 '<input id="recBy" placeholder="Received By"><input id="remarks" placeholder="Remarks">';
       } else if(type === 'DeliveryParcelLogs') {
@@ -71,31 +86,55 @@
     }
 
     function startScanner() {
-      const html5QrCode = new Html5Qrcode("reader");
+      if (html5QrCode) { return; } // Kung bukas na, huwag nang magbukas ulit
+      html5QrCode = new Html5Qrcode("reader");
       html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
         (decodedText) => {
           let serialField = document.getElementById('serial');
-          if (serialField.value.trim() === "") {
-            serialField.value = decodedText;
-          } else {
-            serialField.value += "\n" + decodedText;
+          // Para maiwasan ang sunud-sunod na pag-scan ng iisang serial nang mabilis
+          let lines = serialField.value.split("\n");
+          if (lines[lines.length - 1] !== decodedText) {
+            if (serialField.value.trim() === "") {
+              serialField.value = decodedText;
+            } else {
+              serialField.value += "\n" + decodedText;
+            }
           }
-          alert("Na-scan ang: " + decodedText);
         }
       ).catch(err => { alert("Error sa camera: " + err); });
     }
 
     function startScannerRTS() {
-      const html5QrCode = new Html5Qrcode("reader");
+      if (html5QrCode) { return; }
+      html5QrCode = new Html5Qrcode("reader");
       html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
         (decodedText) => {
           document.getElementById('tracking').value = decodedText;
-          html5QrCode.stop().then(() => { document.getElementById('reader').innerHTML = ""; });
+          stopScanner();
         }
       ).catch(err => { alert("Error sa camera: " + err); });
     }
 
+    function stopScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode = null;
+          let r = document.getElementById('reader');
+          if(r) r.innerHTML = "";
+        }).catch(() => {
+          html5QrCode = null;
+          let r = document.getElementById('reader');
+          if(r) r.innerHTML = "";
+        });
+      } else {
+        let r = document.getElementById('reader');
+        if(r) r.innerHTML = "";
+      }
+    }
+
     function submitForm() {
+      stopScanner(); // Patayin ang camera bago mag-submit para walang naiwang proseso
+
       let fields = document.querySelectorAll('#fields input, #fields select, #fields textarea');
       let isValid = true;
       fields.forEach(el => {
