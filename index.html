@@ -103,14 +103,17 @@
     function startScanner() {
       if (html5QrCode) { return; }
       html5QrCode = new Html5Qrcode("reader");
-      // Binawasan ang qrbox size ginawang 180 para lumiit ang scan box
       html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 140 } },
         (decodedText) => {
           let serialField = document.getElementById('serial');
-          let lines = serialField.value.split("\n");
-          if (lines[lines.length - 1] !== decodedText) {
-            playBeep();
-            if (serialField.value.trim() === "") {
+          let currentText = serialField.value.trim();
+          // Hatiin ang mga nakasulat per line para masuri kung naroroon na
+          let lines = currentText === "" ? [] : currentText.split("\n");
+          
+          // Suriin kung ang bagong nascan ay wala pa sa listahan
+          if (!lines.includes(decodedText)) {
+            playBeep(); // Tutunog lang kapag bago at idinagdag
+            if (currentText === "") {
               serialField.value = decodedText;
             } else {
               serialField.value += "\n" + decodedText;
